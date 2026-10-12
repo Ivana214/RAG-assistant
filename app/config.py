@@ -12,7 +12,7 @@ class Settings(BaseSettings):
 
     app_name: str = "RAGzhiyan"
     database_url: str = (
-        "postgresql+psycopg://admin:password123@localhost:5432/kaoyan_db"
+        "postgresql+asyncpg://admin:password123@localhost:5432/kaoyan_db"
     )
     ollama_base_url: str = "http://localhost:11434"
     embedding_model: str = "bge-m3"
