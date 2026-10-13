@@ -1,9 +1,12 @@
 import asyncio
+from collections.abc import Callable
 from typing import Any
 
 import requests
 
 from app.config import get_settings
+
+EMBED_BATCH_SIZE = 16
 
 
 class OllamaError(RuntimeError):
@@ -41,36 +44,54 @@ class OllamaClient:
         print("response.text:", response.text, flush=True)
         return response
 
-    async def embed_texts(self, texts: list[str]) -> list[list[float]]:
+    async def embed_texts(
+        self,
+        texts: list[str],
+        batch_size: int = EMBED_BATCH_SIZE,
+        progress_callback: Callable[[int], None] | None = None,
+    ) -> list[list[float]]:
         if not texts:
             return []
+        if batch_size <= 0:
+            raise OllamaError("batch_size 必须大于 0")
 
-        payload: dict[str, Any] = {
-            "model": "bge-m3",
-            "input": texts,
-        }
-        response = await asyncio.to_thread(
-            self._post_json, "/api/embed", payload
-        )
-
-        if response.status_code != 200:
-            raise OllamaError(
-                f"Ollama embedding 失败 ({response.status_code}): "
-                f"{response.text}"
+        embeddings: list[list[float]] = []
+        for start in range(0, len(texts), batch_size):
+            batch = texts[start : start + batch_size]
+            payload: dict[str, Any] = {
+                "model": settings.embedding_model,
+                "input": batch,
+            }
+            response = await asyncio.to_thread(
+                self._post_json, "/api/embed", payload
             )
 
-        try:
-            data = response.json()
-        except ValueError as exc:
-            raise OllamaError(
-                f"Ollama embedding 返回的不是合法 JSON: {response.text}"
-            ) from exc
+            if response.status_code != 200:
+                raise OllamaError(
+                    f"Ollama embedding 失败 ({response.status_code}): "
+                    f"{response.text}"
+                )
 
-        embeddings = data.get("embeddings")
-        if not isinstance(embeddings, list) or len(embeddings) != len(texts):
-            raise OllamaError(
-                f"Ollama embedding 返回的数据格式异常: {data}"
-            )
+            try:
+                data = response.json()
+            except ValueError as exc:
+                raise OllamaError(
+                    f"Ollama embedding 返回的不是合法 JSON: {response.text}"
+                ) from exc
+
+            batch_embeddings = data.get("embeddings")
+            if (
+                not isinstance(batch_embeddings, list)
+                or len(batch_embeddings) != len(batch)
+            ):
+                raise OllamaError(
+                    f"Ollama embedding 返回的数据格式异常: {data}"
+                )
+
+            embeddings.extend(batch_embeddings)
+            if progress_callback is not None:
+                progress_callback(len(embeddings))
+
         return embeddings
 
     async def chat(self, messages: list[dict[str, str]]) -> str:

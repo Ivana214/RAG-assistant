@@ -17,6 +17,24 @@ class UploadResponse(DocumentOut):
     message: str
 
 
+class UploadTaskResponse(BaseModel):
+    task_id: str
+    filename: str
+    status: str
+
+
+class TaskStatusResponse(BaseModel):
+    task_id: str
+    filename: str
+    status: str
+    progress: str
+    processed_chunks: int
+    total_chunks: int
+    message: str | None = None
+    error: str | None = None
+    document_id: int | None = None
+
+
 class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=4000)
     top_k: int = Field(default=4, ge=1, le=20)
