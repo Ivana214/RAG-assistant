@@ -90,7 +90,9 @@ class OllamaClient:
 
             embeddings.extend(batch_embeddings)
             if progress_callback is not None:
-                progress_callback(len(embeddings))
+                result = progress_callback(len(embeddings))
+                if asyncio.iscoroutine(result):
+                    await result
 
         return embeddings
 

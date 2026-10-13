@@ -26,10 +26,12 @@
       body {
         height: 100%;
       }
+      .app-scroll,
       .chat-scroll {
         scrollbar-width: thin;
         scrollbar-color: #cbd5e1 transparent;
       }
+      .dark .app-scroll,
       .dark .chat-scroll {
         scrollbar-color: #525252 transparent;
       }
@@ -55,14 +57,17 @@
         }
       }
       .drop-active {
-        border-color: #16a34a;
-        background-color: rgba(22, 163, 74, 0.08);
+        border-color: #10b981;
+        background-color: rgba(16, 185, 129, 0.12);
+        transform: translateY(-1px);
       }
     </style>
   </head>
-  <body class="bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100">
+  <body
+    class="bg-gradient-to-br from-emerald-50 via-white to-neutral-100 text-neutral-900 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950 dark:text-neutral-100"
+  >
     <header
-      class="flex h-14 items-center justify-between border-b border-neutral-200 px-4 dark:border-neutral-800 dark:bg-neutral-900"
+      class="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-neutral-200/70 bg-white/80 px-4 backdrop-blur dark:border-neutral-800/70 dark:bg-neutral-900/80"
     >
       <div class="flex items-center gap-2">
         <span
@@ -77,6 +82,24 @@
           </p>
         </div>
       </div>
+      <div
+        class="flex rounded-xl border border-neutral-200 bg-neutral-100/70 p-1 dark:border-neutral-700 dark:bg-neutral-800/70"
+      >
+        <button
+          id="chatTab"
+          type="button"
+          class="rounded-lg px-3 py-1.5 text-xs font-semibold text-neutral-600 transition hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
+        >
+          知识问答
+        </button>
+        <button
+          id="questionsTab"
+          type="button"
+          class="rounded-lg px-3 py-1.5 text-xs font-semibold text-neutral-600 transition hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
+        >
+          题库
+        </button>
+      </div>
       <button
         id="themeToggle"
         type="button"
@@ -88,54 +111,127 @@
       </button>
     </header>
 
-    <main class="flex min-h-[calc(100vh-3.5rem)] flex-col lg:flex-row">
+    <main
+      class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-5 p-4 lg:min-h-[calc(100vh-3.5rem)] lg:flex-row lg:overflow-hidden"
+    >
       <aside
-        class="w-full border-b border-neutral-200 p-5 dark:border-neutral-800 lg:w-[38%] lg:border-b-0 lg:border-r xl:w-[34%]"
+        class="app-scroll w-full shrink-0 rounded-2xl border border-neutral-200/80 bg-white/90 p-5 shadow-sm backdrop-blur dark:border-neutral-800/80 dark:bg-neutral-900/90 lg:w-[350px] lg:overflow-y-auto"
       >
         <div class="mb-4">
-          <h2 class="text-sm font-semibold">上传文档</h2>
-          <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-            拖入 PDF，解析后自动向量化入库
-          </p>
+          <label
+            for="collectionInput"
+            class="text-xs font-medium uppercase tracking-wide text-neutral-400"
+          >
+            知识库
+          </label>
+          <input
+            id="collectionInput"
+            type="text"
+            value="default"
+            placeholder="default"
+            class="mt-1 w-full rounded-xl border border-neutral-300/80 bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
+          />
+        </div>
+
+        <div class="mb-4 flex items-end justify-between">
+          <div>
+            <h2 class="text-sm font-semibold">上传文档</h2>
+            <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+              拖入 PDF，解析后自动向量化入库
+            </p>
+          </div>
+          <i data-lucide="file-plus-2" class="h-5 w-5 text-neutral-400"></i>
         </div>
 
         <div
           id="dropZone"
-          class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-neutral-300 px-6 py-10 text-center transition-colors hover:border-emerald-500 hover:bg-emerald-50/40 dark:border-neutral-700 dark:hover:bg-emerald-950/20"
+          class="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-neutral-300 bg-white/60 px-6 py-10 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-emerald-500 hover:shadow-md dark:border-neutral-700 dark:bg-neutral-800/60 dark:hover:bg-neutral-800"
         >
-          <i data-lucide="file-up" class="mb-3 h-8 w-8 text-emerald-600"></i>
-          <p class="text-sm font-medium">拖拽 PDF 到这里</p>
+          <i
+            data-lucide="cloud-upload"
+            class="mb-3 h-9 w-9 text-emerald-600"
+          ></i>
+          <p class="text-sm font-semibold">拖拽文件到这里</p>
           <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-            或点击选择文件
+            支持 PDF / Excel / CSV / Word / PPT
           </p>
-          <input id="fileInput" type="file" accept=".pdf,application/pdf" class="hidden" />
+          <input
+            id="fileInput"
+            type="file"
+            accept=".pdf,.xlsx,.csv,.docx,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            class="hidden"
+          />
         </div>
 
+        <label
+          class="mt-3 flex items-center gap-2 rounded-xl border border-neutral-200/80 bg-white/70 px-3 py-2.5 text-xs text-neutral-600 shadow-sm dark:border-neutral-800 dark:bg-neutral-800/70 dark:text-neutral-300"
+        >
+          <input
+            id="extractQuestionsCheckbox"
+            type="checkbox"
+            class="h-4 w-4 rounded border-neutral-300 accent-emerald-600"
+          />
+          作为题库导入（PDF / Word）
+        </label>
+
         <div class="mt-5">
-          <h3 class="text-xs font-medium uppercase tracking-wide text-neutral-400">
+          <h3
+            class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-neutral-400"
+          >
+            <i data-lucide="files" class="h-3.5 w-3.5"></i>
             文件列表
           </h3>
           <div id="fileList" class="mt-2 space-y-2"></div>
         </div>
+
+        <details id="historyDetails" class="mt-6">
+          <summary
+            class="flex cursor-pointer list-none items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-neutral-400"
+          >
+            <i data-lucide="history" class="h-3.5 w-3.5"></i>
+            历史记录
+          </summary>
+          <div
+            id="historyList"
+            class="mt-2 max-h-64 space-y-2 overflow-y-auto"
+          ></div>
+        </details>
       </aside>
 
-      <section class="flex min-h-0 flex-1 flex-col">
+      <section
+        id="chatPanel"
+        class="flex min-h-[70vh] flex-1 flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-white/90 shadow-sm backdrop-blur dark:border-neutral-800/80 dark:bg-neutral-900/90 lg:min-h-0"
+      >
+        <div
+          class="flex items-center gap-2 border-b border-neutral-200/70 px-5 py-4 dark:border-neutral-800/70"
+        >
+          <i data-lucide="database" class="h-4 w-4 text-emerald-600"></i>
+          <span class="text-xs text-neutral-400">当前知识库</span>
+          <span
+            id="chatCollectionName"
+            class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+          >
+            default
+          </span>
+        </div>
         <div
           id="chatMessages"
-          class="chat-scroll flex-1 space-y-5 overflow-y-auto px-4 py-6"
+          class="chat-scroll flex-1 space-y-5 overflow-y-auto px-5 py-6"
         ></div>
-        <div class="border-t border-neutral-200 p-4 dark:border-neutral-800">
+        <div
+          class="border-t border-neutral-200/70 bg-white/70 p-4 dark:border-neutral-800/70 dark:bg-neutral-900/70"
+        >
           <form id="chatForm" class="flex items-end gap-2">
             <textarea
               id="questionInput"
               rows="1"
               placeholder="输入问题，例如：什么是马克思主义中国化？"
-              class="max-h-36 min-h-[44px] flex-1 resize-none rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
+              class="max-h-36 min-h-[48px] flex-1 resize-none rounded-xl border border-neutral-300/80 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
             ></textarea>
             <button
               id="sendButton"
               type="submit"
-              class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-600 text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+              class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
               title="发送"
             >
               <i data-lucide="send" class="h-5 w-5"></i>
@@ -143,18 +239,61 @@
           </form>
         </div>
       </section>
+
+      <section
+        id="questionBankPanel"
+        class="hidden min-h-[70vh] flex-1 flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-white/90 shadow-sm backdrop-blur dark:border-neutral-800/80 dark:bg-neutral-900/90 lg:min-h-0"
+      >
+        <div
+          class="flex flex-col gap-3 border-b border-neutral-200/70 p-5 dark:border-neutral-800/70 sm:flex-row"
+        >
+          <div class="relative flex-1">
+            <i
+              data-lucide="search"
+              class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
+            ></i>
+            <input
+              id="questionSearchInput"
+              type="text"
+              placeholder="搜索题目、答案或知识点"
+              class="w-full rounded-xl border border-neutral-300/80 bg-white py-2.5 pl-9 pr-3 text-sm shadow-sm outline-none focus:border-emerald-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
+            />
+          </div>
+          <input
+            id="knowledgeFilterInput"
+            type="text"
+            placeholder="按知识点筛选"
+            class="w-full rounded-xl border border-neutral-300/80 bg-white px-3 py-2.5 text-sm shadow-sm outline-none focus:border-emerald-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 sm:w-56"
+          />
+          <button
+            id="questionSearchButton"
+            type="button"
+            class="shrink-0 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+          >
+            查询
+          </button>
+        </div>
+        <div
+          id="questionList"
+          class="chat-scroll flex-1 space-y-3 overflow-y-auto p-5"
+        ></div>
+      </section>
     </main>
 
     <script>
       const state = {
         files: [],
         messages: [],
+        history: [],
         thinking: false,
       };
 
       const dropZone = document.getElementById("dropZone");
       const fileInput = document.getElementById("fileInput");
       const fileList = document.getElementById("fileList");
+      const collectionInput = document.getElementById("collectionInput");
+      const historyList = document.getElementById("historyList");
+      const chatCollectionName = document.getElementById("chatCollectionName");
       const chatMessages = document.getElementById("chatMessages");
       const chatForm = document.getElementById("chatForm");
       const questionInput = document.getElementById("questionInput");
@@ -162,6 +301,15 @@
       const themeToggle = document.getElementById("themeToggle");
       const themeIconSun = document.getElementById("themeIconSun");
       const themeIconMoon = document.getElementById("themeIconMoon");
+      const chatPanel = document.getElementById("chatPanel");
+      const questionBankPanel = document.getElementById("questionBankPanel");
+      const chatTab = document.getElementById("chatTab");
+      const questionsTab = document.getElementById("questionsTab");
+      const questionSearchInput = document.getElementById("questionSearchInput");
+      const knowledgeFilterInput = document.getElementById("knowledgeFilterInput");
+      const questionSearchButton = document.getElementById("questionSearchButton");
+      const questionList = document.getElementById("questionList");
+      const extractQuestionsCheckbox = document.getElementById("extractQuestionsCheckbox");
 
       function escapeHtml(value) {
         return String(value ?? "")
@@ -199,6 +347,125 @@
         return status || "排队中";
       }
 
+      function currentCollection() {
+        return collectionInput.value.trim() || "default";
+      }
+
+      function renderCollectionName() {
+        chatCollectionName.textContent = currentCollection();
+      }
+
+      function showTab(tab) {
+        const chatActive = tab === "chat";
+        chatPanel.classList.toggle("hidden", !chatActive);
+        chatPanel.classList.toggle("flex", chatActive);
+        questionBankPanel.classList.toggle("hidden", chatActive);
+        questionBankPanel.classList.toggle("flex", !chatActive);
+
+        const activeClass =
+          "bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-white";
+        chatTab.className = `rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+          chatActive
+            ? activeClass
+            : "text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
+        }`;
+        questionsTab.className = `rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+          chatActive
+            ? "text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
+            : activeClass
+        }`;
+        if (!chatActive) {
+          loadQuestions();
+        }
+        refreshIcons();
+      }
+
+      function renderQuestions(questions) {
+        if (!questions.length) {
+          questionList.innerHTML =
+            '<p class="text-sm text-neutral-400">暂无题目</p>';
+          return;
+        }
+        questionList.innerHTML = questions
+          .map(
+            (question) => `
+              <div class="rounded-xl border border-neutral-200/80 bg-white/80 p-4 shadow-sm transition hover:shadow-md dark:border-neutral-800 dark:bg-neutral-800/80">
+                <p class="text-sm font-semibold leading-relaxed">${escapeHtml(question.content)}</p>
+                <div class="mt-2 rounded-lg bg-neutral-100/80 px-3 py-2 text-sm text-neutral-600 dark:bg-neutral-700/50 dark:text-neutral-300">
+                  ${escapeHtml(question.answer || "暂无答案")}
+                </div>
+                <div class="mt-3 flex flex-wrap items-center gap-1.5 text-xs">
+                  ${
+                    question.question_type
+                      ? `<span class="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">${escapeHtml(question.question_type)}</span>`
+                      : ""
+                  }
+                  ${
+                    question.knowledge_point
+                      ? `<span class="rounded-full bg-sky-50 px-2 py-0.5 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300">${escapeHtml(question.knowledge_point)}</span>`
+                      : ""
+                  }
+                  <span class="ml-auto text-neutral-400">${escapeHtml(question.created_at)}</span>
+                </div>
+              </div>
+            `,
+          )
+          .join("");
+        refreshIcons();
+      }
+
+      function loadQuestions() {
+        const params = new URLSearchParams();
+        if (knowledgeFilterInput.value.trim()) {
+          params.set("knowledge_point", knowledgeFilterInput.value.trim());
+        }
+        if (questionSearchInput.value.trim()) {
+          params.set("q", questionSearchInput.value.trim());
+        }
+        fetch(`/questions?${params.toString()}`)
+          .then((response) => response.json())
+          .then((data) => renderQuestions(Array.isArray(data) ? data : []))
+          .catch(() => renderQuestions([]));
+      }
+
+      function renderHistory() {
+        if (state.history.length === 0) {
+          historyList.innerHTML =
+            '<p class="text-xs text-neutral-400">暂无历史记录</p>';
+          return;
+        }
+        historyList.innerHTML = state.history
+          .map(
+            (item) => `
+              <button
+                type="button"
+                class="w-full rounded-xl border border-neutral-200/80 bg-white/70 p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-800/70 dark:hover:border-emerald-700"
+              >
+                <p class="truncate text-sm font-medium">${escapeHtml(item.question)}</p>
+                <p class="mt-1.5 flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
+                  <i data-lucide="clock-3" class="h-3 w-3"></i>
+                  <span class="truncate">${escapeHtml(item.collection)} · ${escapeHtml(item.created_at)}</span>
+                </p>
+              </button>
+            `,
+          )
+          .join("");
+        refreshIcons();
+      }
+
+      function loadHistory() {
+        fetch("/conversations")
+          .then((response) => response.json())
+          .then((data) => {
+            state.history = Array.isArray(data) ? data : [];
+            renderHistory();
+          })
+          .catch(() => {
+            state.history = [];
+            renderHistory();
+          });
+      }
+
       function renderFiles() {
         if (state.files.length === 0) {
           fileList.innerHTML =
@@ -225,18 +492,18 @@
               ? `<p class="mt-1 truncate text-xs text-red-500" title="${escapeHtml(file.error)}">${escapeHtml(file.error)}</p>`
               : "";
             return `
-              <div class="rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
+              <div class="rounded-xl border border-neutral-200/80 bg-white/80 p-3 shadow-sm transition-all hover:shadow-md dark:border-neutral-800 dark:bg-neutral-800/80">
                 <div class="flex items-start justify-between gap-2">
                   <div class="min-w-0">
-                    <p class="truncate text-sm font-medium">${escapeHtml(file.filename)}</p>
-                    <p class="mt-0.5 text-xs ${statusColor}">${progressText}</p>
+                    <p class="truncate text-sm font-semibold">${escapeHtml(file.filename)}</p>
+                    <p class="mt-1 text-xs ${statusColor}">${progressText}</p>
                   </div>
-                  <span class="shrink-0 text-xs ${statusColor}">${escapeHtml(formatStatus(file.status))}</span>
+                  <span class="shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium ${statusColor} dark:bg-neutral-700/70">${escapeHtml(formatStatus(file.status))}</span>
                 </div>
                 ${
                   file.total_chunks > 0 && file.status !== "失败"
-                    ? `<div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
-                        <div class="h-full rounded-full bg-emerald-600 transition-all" style="width: ${percent}%"></div>
+                    ? `<div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
+                        <div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500" style="width: ${percent}%"></div>
                       </div>`
                     : ""
                 }
@@ -253,7 +520,7 @@
             if (message.role === "user") {
               return `
                 <div class="flex justify-end">
-                  <div class="max-w-[82%] rounded-2xl bg-emerald-600 px-4 py-3 text-sm text-white">
+                  <div class="max-w-[82%] rounded-2xl rounded-br-md bg-neutral-200/80 px-4 py-3 text-sm text-neutral-800 shadow-sm dark:bg-neutral-700/80 dark:text-neutral-100">
                     ${escapeHtml(message.content)}
                   </div>
                 </div>
@@ -262,7 +529,7 @@
             if (message.thinking) {
               return `
                 <div class="flex justify-start">
-                  <div class="max-w-[82%] rounded-2xl bg-neutral-100 px-4 py-3 text-sm dark:bg-neutral-800">
+                  <div class="max-w-[82%] rounded-2xl rounded-bl-md border border-neutral-200/70 bg-white px-4 py-3 text-sm shadow-sm dark:border-neutral-700/70 dark:bg-neutral-800">
                     <span class="flex items-center gap-2 text-neutral-500 dark:text-neutral-400">
                       <span class="loading-dots flex items-center gap-1">
                         <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
@@ -278,24 +545,24 @@
             const sources = (message.sources || [])
               .map(
                 (source) => `
-                  <div class="mt-1 rounded-md bg-neutral-100/80 px-2 py-1.5 text-xs text-neutral-500 dark:bg-neutral-800/80 dark:text-neutral-400">
-                    <p class="font-medium text-neutral-600 dark:text-neutral-300">
-                      ${escapeHtml(source.filename)} · 第 ${source.page_number} 页 · 相似度 ${source.score.toFixed(2)}
-                    </p>
-                    <p class="mt-0.5 line-clamp-2 text-neutral-500 dark:text-neutral-400">
-                      ${escapeHtml(source.snippet)}
-                    </p>
+                  <div class="mt-2 rounded-xl bg-neutral-100/90 px-3 py-2 text-xs text-neutral-500 dark:bg-neutral-700/50 dark:text-neutral-400">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                      <span class="rounded-full bg-white px-2 py-0.5 font-medium text-neutral-600 shadow-sm dark:bg-neutral-800 dark:text-neutral-300">${escapeHtml(source.filename)}</span>
+                      <span class="rounded-full bg-white px-2 py-0.5 shadow-sm dark:bg-neutral-800">第 ${source.page_number} 页</span>
+                      <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">相似度 ${source.score.toFixed(2)}</span>
+                    </div>
+                    <p class="mt-1.5 line-clamp-2 text-neutral-500 dark:text-neutral-400">${escapeHtml(source.snippet)}</p>
                   </div>
                 `,
               )
               .join("");
             return `
               <div class="flex justify-start">
-                <div class="max-w-[82%] rounded-2xl bg-neutral-100 px-4 py-3 text-sm dark:bg-neutral-800">
-                  <div class="whitespace-pre-wrap">${escapeHtml(message.content)}</div>
+                <div class="max-w-[82%] rounded-2xl rounded-bl-md border border-neutral-200/70 bg-white px-4 py-3 text-sm shadow-sm dark:border-neutral-700/70 dark:bg-neutral-800">
+                  <div class="whitespace-pre-wrap leading-relaxed">${escapeHtml(message.content)}</div>
                   ${
                     sources
-                      ? `<div class="mt-3 space-y-1 border-t border-neutral-200 pt-2 dark:border-neutral-700">${sources}</div>`
+                      ? `<div class="mt-3 border-t border-neutral-200 pt-2 dark:border-neutral-700">${sources}</div>`
                       : ""
                   }
                 </div>
@@ -309,8 +576,12 @@
       }
 
       function uploadFile(file) {
-        if (!file.name.toLowerCase().endsWith(".pdf")) {
-          alert("只支持上传 PDF 文件");
+        const allowedExtensions = [".pdf", ".xlsx", ".csv", ".docx", ".pptx"];
+        const extension = file.name.toLowerCase().slice(
+          file.name.toLowerCase().lastIndexOf("."),
+        );
+        if (!allowedExtensions.includes(extension)) {
+          alert("只支持上传 PDF、Excel、CSV、Word、PPT 文件");
           return;
         }
         const record = {
@@ -330,6 +601,11 @@
 
         const formData = new FormData();
         formData.append("file", file);
+        formData.append("collection", currentCollection());
+        formData.append(
+          "extract_questions",
+          extractQuestionsCheckbox.checked ? "true" : "false",
+        );
         fetch("/documents/upload", { method: "POST", body: formData })
           .then(async (response) => {
             const data = await response.json().catch(() => ({}));
@@ -398,7 +674,11 @@
         fetch("/ask", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question, top_k: 4 }),
+          body: JSON.stringify({
+            question,
+            top_k: 4,
+            collection: currentCollection(),
+          }),
         })
           .then(async (response) => {
             const data = await response.json().catch(() => ({}));
@@ -413,6 +693,7 @@
               thinking: false,
             });
             renderChat();
+            loadHistory();
           })
           .catch((error) => {
             setThinking(false);
@@ -468,10 +749,27 @@
       });
 
       themeToggle.addEventListener("click", toggleTheme);
+      collectionInput.addEventListener("input", renderCollectionName);
+      chatTab.addEventListener("click", () => showTab("chat"));
+      questionsTab.addEventListener("click", () => showTab("questions"));
+      questionSearchButton.addEventListener("click", loadQuestions);
+      questionSearchInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          loadQuestions();
+        }
+      });
+      knowledgeFilterInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          loadQuestions();
+        }
+      });
 
       applyTheme();
+      renderCollectionName();
+      loadHistory();
       renderFiles();
       renderChat();
+      showTab("chat");
     </script>
   </body>
 </html>

@@ -10,6 +10,7 @@ class DocumentOut(BaseModel):
     filename: str
     num_pages: int
     chunk_count: int
+    collection: str
     created_at: datetime
 
 
@@ -20,12 +21,14 @@ class UploadResponse(DocumentOut):
 class UploadTaskResponse(BaseModel):
     task_id: str
     filename: str
+    collection: str
     status: str
 
 
 class TaskStatusResponse(BaseModel):
     task_id: str
     filename: str
+    collection: str
     status: str
     progress: str
     processed_chunks: int
@@ -38,6 +41,7 @@ class TaskStatusResponse(BaseModel):
 class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=4000)
     top_k: int = Field(default=4, ge=1, le=20)
+    collection: str = Field(default="default", max_length=64)
 
 
 class Source(BaseModel):
@@ -51,3 +55,26 @@ class Source(BaseModel):
 class AskResponse(BaseModel):
     answer: str
     sources: list[Source]
+
+
+class ConversationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    question: str
+    answer: str
+    sources: list[Source]
+    collection: str
+    created_at: datetime
+
+
+class QuestionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    content: str
+    answer: str
+    question_type: str | None = None
+    knowledge_point: str | None = None
+    source_document_id: int | None = None
+    created_at: datetime

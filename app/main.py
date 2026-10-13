@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
 from app.database import dispose_db, init_db
-from app.routers import ask, documents
+from app.routers import ask, conversations, documents, questions
 from app.services.ollama import ollama_client
 
 settings = get_settings()
@@ -25,6 +25,8 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(title=settings.app_name, version="0.1.0", lifespan=lifespan)
 app.include_router(documents.router)
 app.include_router(ask.router)
+app.include_router(conversations.router)
+app.include_router(questions.router)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 

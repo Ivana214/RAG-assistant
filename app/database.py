@@ -22,6 +22,23 @@ async def init_db() -> None:
     async with engine.begin() as conn:
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         await conn.run_sync(Base.metadata.create_all)
+        await conn.execute(
+            text(
+                "ALTER TABLE documents ADD COLUMN IF NOT EXISTS "
+                "collection VARCHAR(64) NOT NULL DEFAULT 'default'"
+            )
+        )
+        await conn.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS idx_documents_collection "
+                "ON documents (collection)"
+            )
+        )
+        await conn.execute(
+            text(
+                "ALTER TABLE chunks ADD COLUMN IF NOT EXISTS metadata JSONB"
+            )
+        )
 
 
 async def dispose_db() -> None:
