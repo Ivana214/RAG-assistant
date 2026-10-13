@@ -1,6 +1,7 @@
+import asyncio
 from typing import Any
 
-import httpx
+import requests
 
 from app.config import get_settings
 
@@ -11,34 +12,65 @@ class OllamaError(RuntimeError):
 
 class OllamaClient:
     def __init__(self, base_url: str, timeout: float) -> None:
-        self._client = httpx.AsyncClient(base_url=base_url, timeout=timeout)
+        self._base_url = base_url.rstrip("/")
+        self._timeout = timeout
 
     async def aclose(self) -> None:
-        await self._client.aclose()
+        return None
+
+    def _request_url(self, path: str) -> str:
+        return f"{self._base_url}{path}"
+
+    def _post_json(self, path: str, payload: dict[str, Any]) -> requests.Response:
+        url = self._request_url(path)
+        try:
+            response = requests.post(
+                url,
+                json=payload,
+                timeout=self._timeout,
+                proxies={"http": None, "https": None},
+            )
+        except requests.RequestException as exc:
+            print("Ollama 请求异常:", str(exc), flush=True)
+            print("请求 URL:", url, flush=True)
+            raise OllamaError(
+                f"Ollama 请求异常: {str(exc)} (URL: {url})"
+            ) from exc
+
+        print("response.status_code:", response.status_code, flush=True)
+        print("response.text:", response.text, flush=True)
+        return response
 
     async def embed_texts(self, texts: list[str]) -> list[list[float]]:
         if not texts:
             return []
 
         payload: dict[str, Any] = {
-            "model": settings.embedding_model,
+            "model": "bge-m3",
             "input": texts,
         }
-        try:
-            response = await self._client.post("/api/embed", json=payload)
-        except httpx.HTTPError as exc:
-            raise OllamaError(f"Ollama embedding 请求失败: {exc}") from exc
+        response = await asyncio.to_thread(
+            self._post_json, "/api/embed", payload
+        )
 
         if response.status_code != 200:
             raise OllamaError(
                 f"Ollama embedding 失败 ({response.status_code}): "
-                f"{response.text[:300]}"
+                f"{response.text}"
             )
 
-        data = response.json()
+        try:
+            data = response.json()
+        except ValueError as exc:
+            raise OllamaError(
+                f"Ollama embedding 返回的不是合法 JSON: {response.text}"
+            ) from exc
+
         embeddings = data.get("embeddings")
         if not isinstance(embeddings, list) or len(embeddings) != len(texts):
-            raise OllamaError("Ollama 返回的 embedding 数据格式异常")
+            raise OllamaError(
+                f"Ollama embedding 返回的数据格式异常: {data}"
+            )
         return embeddings
 
     async def chat(self, messages: list[dict[str, str]]) -> str:
@@ -48,21 +80,26 @@ class OllamaClient:
             "stream": False,
             "options": {"temperature": 0.2},
         }
-        try:
-            response = await self._client.post("/api/chat", json=payload)
-        except httpx.HTTPError as exc:
-            raise OllamaError(f"Ollama chat 请求失败: {exc}") from exc
+        response = await asyncio.to_thread(
+            self._post_json, "/api/chat", payload
+        )
 
         if response.status_code != 200:
             raise OllamaError(
-                f"Ollama chat 失败 ({response.status_code}): {response.text[:300]}"
+                f"Ollama chat 失败 ({response.status_code}): {response.text}"
             )
 
-        data = response.json()
+        try:
+            data = response.json()
+        except ValueError as exc:
+            raise OllamaError(
+                f"Ollama chat 返回的不是合法 JSON: {response.text}"
+            ) from exc
+
         message = data.get("message") or {}
         answer = message.get("content")
         if not isinstance(answer, str) or not answer.strip():
-            raise OllamaError("Ollama 返回的对话数据格式异常")
+            raise OllamaError(f"Ollama chat 返回的数据格式异常: {data}")
         return answer.strip()
 
 

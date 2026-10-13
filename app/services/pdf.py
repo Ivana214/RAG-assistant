@@ -1,6 +1,4 @@
-import io
-
-from pypdf import PdfReader
+import pymupdf
 
 
 class PDFProcessingError(ValueError):
@@ -9,24 +7,24 @@ class PDFProcessingError(ValueError):
 
 def extract_pdf_pages(content: bytes) -> dict:
     try:
-        reader = PdfReader(io.BytesIO(content))
+        document = pymupdf.open(stream=content, filetype="pdf")
     except Exception as exc:
         raise PDFProcessingError("无法解析 PDF 文件") from exc
 
-    if reader.is_encrypted:
-        try:
-            reader.decrypt("")
-        except Exception as exc:
-            raise PDFProcessingError("PDF 已加密，无法读取") from exc
+    try:
+        if document.needs_pass and not document.authenticate(""):
+            raise PDFProcessingError("PDF 已加密，无法读取")
 
-    pages = []
-    for index, page in enumerate(reader.pages, start=1):
-        try:
-            text = page.extract_text() or ""
-        except Exception:
-            text = ""
-        text = text.strip()
-        if text:
-            pages.append({"page_number": index, "text": text})
+        pages = []
+        for index, page in enumerate(document, start=1):
+            try:
+                text = page.get_text("text") or ""
+            except Exception:
+                text = ""
+            text = text.strip()
+            if text:
+                pages.append({"page_number": index, "text": text})
 
-    return {"total_pages": len(reader.pages), "pages": pages}
+        return {"total_pages": document.page_count, "pages": pages}
+    finally:
+        document.close()

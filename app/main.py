@@ -23,6 +23,15 @@ app.include_router(documents.router)
 app.include_router(ask.router)
 
 
+@app.get("/")
+async def root() -> dict[str, str]:
+    return {
+        "service": settings.app_name,
+        "docs": "/docs",
+        "health": "/health",
+    }
+
+
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok", "service": settings.app_name}

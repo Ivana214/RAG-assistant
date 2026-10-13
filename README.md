@@ -7,7 +7,7 @@
 - FastAPI：HTTP 接口
 - PostgreSQL + pgvector：文档与向量存储、余弦相似度检索
 - Ollama：`bge-m3` 向量化，`qwen2.5:7b` 对话生成
-- pypdf：PDF 文本解析
+- PyMuPDF：PDF 文本解析
 
 ## 项目结构
 
